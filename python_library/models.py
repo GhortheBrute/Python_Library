@@ -1,4 +1,5 @@
 from . import db
+from sqlalchemy.orm import relationship
 
 class Language(db.Model):
     # Define o nome da tabela, (opcional, mas recomendado)
@@ -9,6 +10,9 @@ class Language(db.Model):
     Code = db.Column(db.String(10), unique=True, nullable=False)
     Name = db.Column(db.String(100), nullable=False)
 
+    # -- Relacionamento --
+    books = db.relationship('Book', back_populates='language')
+
 class Author(db.Model):
     __tablename__ = "Author"
 
@@ -17,17 +21,28 @@ class Author(db.Model):
     MName = db.Column(db.String(45), nullable=True)
     LName = db.Column(db.String(100), nullable=False)
 
+    # -- Relacionamento --
+    # Aqui está uma lista de livros ligados ao autor
+    # 'back_populates' diz ao SQLAlchemy que este lado da relação
+    # se conecta com o atributo 'author' no modelo 'book'
+    books = db.relationship('Book', back_populates='author')
+
 class Address(db.Model):
     __tablename__ = "Address"
 
     idAddress = db.Column(db.Integer, primary_key=True)
     Road = db.Column(db.String(255), nullable=False)
     Neighbourhood = db.Column(db.String(255), nullable=False)
-    Number = db.Column(db.Integer, nullable=True)
+    Number = db.Column(db.String(45), nullable=True)
     City = db.Column(db.String(45), nullable=False)
     State = db.Column(db.String(45), nullable=False)
     ZipCode = db.Column(db.String(9), nullable=False)
-    Complement = db.Column(db.String(255), nullable=False)
+    Complement = db.Column(db.String(255), nullable=True)
+
+    # -- Relacionamentos --
+    publisher = db.relationship('Publisher', back_populates='addresses')
+    branch = db.relationship('Branch', back_populates='addresses')
+    clients = db.relationship('Client', back_populates='addresses')
 
 class Publisher(db.Model):
     __tablename__ = "Publisher"
@@ -39,11 +54,18 @@ class Publisher(db.Model):
     # Exemplo de chave estrangeira
     idAddress = db.Column(db.Integer, db.ForeignKey('Address.idAddress'), nullable=False)
 
+    # -- Relacionamento --
+    books = db.relationship('Book', back_populates='publisher')
+    addresses = db.relationship('Address', back_populates='publisher')
+
 class Collection(db.Model):
     __tablename__ = "Collection"
 
     idCollection = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(100), nullable=False)
+
+    # -- Relacionamento --
+    books = db.relationship('Book', back_populates='collections')
 
 class Client(db.Model):
     __tablename__ = "Client"
@@ -53,21 +75,30 @@ class Client(db.Model):
     Phone = db.Column(db.String(45), nullable=False)
     Email = db.Column(db.String(255), nullable=False)
 
+    # -- Relacionamentos --
+    addresses = db.relationship('Address', back_populates='clients')
+    book_loans = db.relationship('BookLoan', back_populates='clients')
+    client_fp = db.relationship('ClientFP', back_populates='clients', uselist=False)
+    client_jp = db.relationship('ClientJP', back_populates='clients', uselist=False)
+
 class ClientFP(db.Model):
     __tablename__ = "ClientFP"
     idClient = db.Column(db.Integer, db.ForeignKey('Client.idClient'), primary_key=True)
     CPF = db.Column(db.String(11), unique=True, nullable=False)
     FName = db.Column(db.String(100), nullable=False)
-    MName = db.Column(db.String(45), nullable=False)
+    MName = db.Column(db.String(45), nullable=True)
     LName = db.Column(db.String(100), nullable=False)
     Birthdate = db.Column(db.Date, nullable=False)
+
+    # -- Relacionamentos --
+    clients = db.relationship('Client', back_populates='clients')
 
 class ClientJP(db.Model):
     __tablename__ = "ClientJP"
     idClient = db.Column(db.Integer, db.ForeignKey('Client.idClient'), primary_key=True)
     CNPJ = db.Column(db.String(14), unique=True, nullable=False)
     Name = db.Column(db.String(100), nullable=False)
-    FantasyName = db.Column(db.String(100), nullable=False)
+    FantasyName = db.Column(db.String(100), nullable=True)
 
 class Branch(db.Model):
     __tablename__ = "Branch"
@@ -75,10 +106,14 @@ class Branch(db.Model):
     BranchName = db.Column(db.String(100), nullable=False)
     idAddress = db.Column(db.Integer, db.ForeignKey('Address.idAddress'), nullable=False)
 
+    # -- Relacionamento --
+    addresses = db.relationship('Address', back_populates='branch')
+    physical_books = db.relationship('PhysicalBook', back_populates='branch')
+
 class Book(db.Model):
     __tablename__ = "Book"
-    ISBN = db.Column(db.Integer, primary_key=True)
-    Title = db.Column(db.String(100), nullable=False)
+    ISBN = db.Column(db.String(13), primary_key=True)
+    Title = db.Column(db.String(255), nullable=False)
     idAuthor = db.Column(db.Integer, db.ForeignKey('Author.idAuthor'), nullable=False)
     idPublisher = db.Column(db.Integer, db.ForeignKey('Publisher.idPublisher'), nullable=False)
     Edition = db.Column(db.String(45), nullable=True)
@@ -87,12 +122,24 @@ class Book(db.Model):
     AgeRange = db.Column(db.Integer, nullable=True)
     Review = db.Column(db.Decimal(2,1), nullable=True)
 
+    # -- Relacionamento --
+    author = db.relationship('Author', back_populates='books')
+    publisher = db.relationship('Publisher', back_populates='books')
+    physical_books = db.relationship('PhysicalBook', back_populates='books')
+    collections = db.relationship('Collection', back_populates='books')
+    language = db.relationship('Language', back_populates='books')
+
 class PhysicalBook(db.Model):
     __tablename__ = "PhysicalBook"
     idPhysicalBook = db.Column(db.Integer, primary_key=True)
-    ISBN = db.Column(db.Integer, db.ForeignKey('Book.ISBN'), nullable=False)
+    ISBN = db.Column(db.String(13), db.ForeignKey('Book.ISBN'), nullable=False)
     idBranch = db.Column(db.Integer, db.ForeignKey('Branch.idBranch'), nullable=False)
-    Status = db.Column(db.Enum('AVAILABLE', 'BORROWED','IN REPAIR'), nullable=False, default='Available')
+    Status = db.Column(db.Enum('AVAILABLE', 'BORROWED','IN REPAIR'), nullable=False, default='AVAILABLE')
+
+    # -- Relacionamento --
+    books = db.relationship('Book', back_populates='physical_books')
+    branch = db.relationship('Branch', back_populates='physical_books')
+    book_loans = db.relationship('BookLoan', back_populates='physical_books')
 
 class BookLoan(db.Model):
     __tablename__ = "BookLoan"
@@ -105,10 +152,14 @@ class BookLoan(db.Model):
     BorrowTimeSolicited = db.Column(db.Integer, nullable=True, default=14)
     Status = db.Column(db.Enum('ACTIVE', 'RETURNED','LOST'), nullable=False, default='ACTIVE')
 
+    # -- Relacionamentos --
+    physical_books = db.relationship('PhysicalBook', back_populates='book_loans')
+    clients = db.relationship('Client', back_populates='book_loans')
+
 class Reserve(db.Model):
     __tablename__ = "Reserve"
     idReserve = db.Column(db.Integer, primary_key=True)
-    ISBN = db.Column(db.Integer, db.ForeignKey('Book.ISBN'), nullable=False)
+    ISBN = db.Column(db.String(13), db.ForeignKey('Book.ISBN'), nullable=False)
     idBranch = db.Column(db.Integer, db.ForeignKey('Branch.idBranch'), nullable=False)
     idClient = db.Column(db.Integer, db.ForeignKey('Client.idClient'), nullable=False)
     ReserveDate = db.Column(db.Timestamp, nullable=False, default=db.func.now())
