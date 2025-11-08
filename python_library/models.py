@@ -55,8 +55,8 @@ class Publisher(db.Model):
     idAddress = db.Column(db.Integer, db.ForeignKey('Address.idAddress'), nullable=False)
 
     # -- Relacionamento --
-    books = db.relationship('Book', back_populates='publishers')
-    address = db.relationship('Address', back_populates='publisher')
+    books = db.relationship('Book', back_populates='publisher')
+    address = db.relationship('Address', back_populates='publishers')
 
 class Collection(db.Model):
     __tablename__ = "Collection"
@@ -77,7 +77,7 @@ class Client(db.Model):
 
     # -- Relacionamentos --
     address = db.relationship('Address', back_populates='clients')
-    book_loans = db.relationship('BookLoan', back_populates='clients')
+    book_loans = db.relationship('BookLoan', back_populates='client')
     client_fp = db.relationship('ClientFP', back_populates='client', uselist=False)
     client_jp = db.relationship('ClientJP', back_populates='client', uselist=False)
     reserves = db.relationship('Reserve', back_populates='client')
