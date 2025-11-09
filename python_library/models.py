@@ -73,8 +73,11 @@ class Client(db.Model):
     idClient = db.Column(db.Integer, primary_key=True)
     Type = db.Column(db.Enum('PF','PJ'), nullable=False)
     idAddress = db.Column(db.Integer, db.ForeignKey('Address.idAddress'), nullable=False)
-    Phone = db.Column(db.String(45), nullable=False)
-    Email = db.Column(db.String(255), nullable=False, unique=True)
+    Phone = db.Column(db.String(45), nullable=True)
+    Email = db.Column(db.String(255), nullable=True, unique=True)
+
+    # -- Status de Ativo
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     # -- Relacionamentos --
     address = db.relationship('Address', back_populates='clients')

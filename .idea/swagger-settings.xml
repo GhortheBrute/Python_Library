@@ -3,7 +3,7 @@
   <component name="SwaggerSettings">
     <remoteSpecificationUrls>
       <UrlInfo>
-        <option name="urlString" value="http://127.0.0.1:5000/api/clients" />
+        <option name="urlString" value="http://localhost:5000/api/clients/" />
       </UrlInfo>
     </remoteSpecificationUrls>
   </component>

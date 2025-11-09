@@ -45,8 +45,14 @@ def create_app():
         db.create_all()
 
     # Importa e registra as rotas (views)
-    from . import routes
-    app.register_blueprint(routes.bp) # Vamos criar isso depois
+    from .routes.client import bp as client_bp
+    #from .routes.book import bp as book_bp
+    from .routes.publisher import bp as publisher_bp
+
+
+    app.register_blueprint(client_bp)
+    #app.register_blueprint(book_bp)
+    app.register_blueprint(publisher_bp)
 
     # Retorna o app pronto
     return app
