@@ -1,5 +1,6 @@
 from . import db
 from sqlalchemy.orm import relationship
+from sqlalchemy import DECIMAL, TIMESTAMP
 
 class Language(db.Model):
     # Define o nome da tabela, (opcional, mas recomendado)
@@ -125,7 +126,7 @@ class Book(db.Model):
     Language = db.Column(db.Integer, db.ForeignKey('Language.idLanguage'), nullable=False)
     Collection = db.Column(db.Integer, db.ForeignKey('Collection.idCollection'), nullable=True)
     AgeRange = db.Column(db.Integer, nullable=True)
-    Review = db.Column(db.Decimal(2,1), nullable=True)
+    Review = db.Column(DECIMAL(2,1), nullable=True)
 
     # -- Relacionamento --
     author = db.relationship('Author', back_populates='books')
@@ -152,8 +153,8 @@ class BookLoan(db.Model):
     idBookLoan = db.Column(db.Integer, primary_key=True)
     idPhysicalBook = db.Column(db.Integer, db.ForeignKey('PhysicalBook.idPhysicalBook'), nullable=False)
     idClient = db.Column(db.Integer, db.ForeignKey('Client.idClient'), nullable=False)
-    BorrowedDate = db.Column(db.Timestamp, nullable=False, default=db.func.now())
-    ReturnDate = db.Column(db.Timestamp, nullable=True)
+    BorrowedDate = db.Column(TIMESTAMP, nullable=False, default=db.func.now())
+    ReturnDate = db.Column(TIMESTAMP, nullable=True)
     DueDate = db.Column(db.Date, nullable=False)
     BorrowTimeSolicited = db.Column(db.Integer, nullable=True, default=14)
     Status = db.Column(db.Enum('ACTIVE', 'RETURNED','LOST'), nullable=False, default='ACTIVE')
@@ -168,7 +169,7 @@ class Reserve(db.Model):
     ISBN = db.Column(db.String(13), db.ForeignKey('Book.ISBN'), nullable=False)
     idBranch = db.Column(db.Integer, db.ForeignKey('Branch.idBranch'), nullable=False)
     idClient = db.Column(db.Integer, db.ForeignKey('Client.idClient'), nullable=False)
-    ReserveDate = db.Column(db.Timestamp, nullable=False, default=db.func.now())
+    ReserveDate = db.Column(TIMESTAMP, nullable=False, default=db.func.now())
 
     # -- Relacionamentos --
     book = db.relationship('Book', back_populates='reserves')

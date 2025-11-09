@@ -2,6 +2,7 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
+from urllib.parse import quote_plus
 
 # Carrega as variáveis do .env
 load_dotenv()
@@ -23,7 +24,11 @@ def create_app():
     DB_HOST = os.getenv("DB_HOST")
     DB_NAME = os.getenv("DB_NAME")
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
+    # -- Codifica a senha --
+    safe_user = quote_plus(DB_USER)
+    safe_pass = quote_plus(DB_PASS)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{safe_user}:{safe_pass}@{DB_HOST}/{DB_NAME}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Conecta o 'db' ao 'app' que acabamos de criar
