@@ -1,8 +1,10 @@
 import os
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 from urllib.parse import quote_plus
+from .routes.client import bp as client_bp
+from .routes.publisher import bp as publisher_bp
 
 # Carrega as variáveis do .env
 load_dotenv()
@@ -45,9 +47,9 @@ def create_app():
         db.create_all()
 
     # Importa e registra as rotas (views)
-    from .routes.client import bp as client_bp
+    #from .routes.client import bp as client_bp
     #from .routes.book import bp as book_bp
-    from .routes.publisher import bp as publisher_bp
+    #from .routes.publisher import bp as publisher_bp
 
 
     app.register_blueprint(client_bp)
