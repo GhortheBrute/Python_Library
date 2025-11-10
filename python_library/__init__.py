@@ -45,12 +45,18 @@ def create_app():
         db.create_all()
 
     # Importa e registra as rotas (views)
+    from .routes.author import bp as author_bp
+    from .routes.branch import bp as branch_bp
     from .routes.client import bp as client_bp
+    from .routes.collection import bp as collection_bp
     #from .routes.book import bp as book_bp
     from .routes.publisher import bp as publisher_bp
 
 
+    app.register_blueprint(author_bp)
+    app.register_blueprint(branch_bp)
     app.register_blueprint(client_bp)
+    app.register_blueprint(collection_bp)
     #app.register_blueprint(book_bp)
     app.register_blueprint(publisher_bp)
 

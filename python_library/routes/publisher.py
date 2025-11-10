@@ -70,17 +70,35 @@ def get_publishers():
     Endpoint for getting all publishers
     """
     try:
+        # Filtros
+        status_filter = request.args.get('status', 'active')
+
         # 1. Fazer consulta juntando Publisher e Address
-        results = db.session.query(
+        query = db.session.query(
             Publisher,
             Address
         ).join(
             Address
-        ).all()
+        ).filter(
+
+        )
+
+        # Adicionamos o filtro de status
+        if status_filter == 'active':
+            query = query.filter(Publisher.is_active == True)
+        elif status_filter == 'inactive':
+            query = query.filter(Publisher.is_active == False)
+        elif status_filter == 'all':
+            pass
+        else:
+            return jsonify({"error": "Invalid 'status' parameter. Use 'active', 'inactive', or 'all'."}), 400
+
+        results = query.all()
 
         output = []
         for publisher, address in results:
             publisher_data = {
+                'idPublisher': publisher.idPublisher,
                 'Name': publisher.Name,
                 'CNPJ': publisher.CNPJ,
                 'Address': {
@@ -183,6 +201,10 @@ def update_publisher(publisher_id):
 def delete_publisher(publisher_id):
     """
     Endpoint for soft-deleting a publisher
+    Accepts a 'status' query param:
+    - ?status=active (default)
+    - ?status=inactive
+    - ?status=all
     """
     try:
         result = get_publisher_by_id(publisher_id)
@@ -192,7 +214,7 @@ def delete_publisher(publisher_id):
 
         publisher, address = result
 
-        publisher.is_active = True
+        publisher.is_active = False
         db.session.commit()
         return '', 204
     except Exception as e:

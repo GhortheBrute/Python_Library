@@ -22,6 +22,9 @@ class Author(db.Model):
     MName = db.Column(db.String(45), nullable=True)
     LName = db.Column(db.String(100), nullable=False)
 
+    # Status
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
     # -- Relacionamento --
     # Aqui está uma lista de livros ligados ao autor
     # 'back_populates' diz ao SQLAlchemy que este lado da relação
@@ -67,6 +70,9 @@ class Collection(db.Model):
 
     idCollection = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(100), nullable=False)
+
+    # Status
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     # -- Relacionamento --
     books = db.relationship('Book', back_populates='collections')
@@ -117,6 +123,9 @@ class Branch(db.Model):
     BranchName = db.Column(db.String(100), nullable=False)
     idAddress = db.Column(db.Integer, db.ForeignKey('Address.idAddress'), nullable=False)
 
+    # status
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
     # -- Relacionamento --
     address = db.relationship('Address', back_populates='branches')
     physical_books = db.relationship('PhysicalBook', back_populates='branch')
@@ -132,7 +141,10 @@ class Book(db.Model):
     Language = db.Column(db.Integer, db.ForeignKey('Language.idLanguage'), nullable=False)
     Collection = db.Column(db.Integer, db.ForeignKey('Collection.idCollection'), nullable=True)
     AgeRange = db.Column(db.Integer, nullable=True)
-    Review = db.Column(DECIMAL(2,1), nullable=True)
+    Review = db.Column(DECIMAL(2,1), nullable=True, default=None)
+
+    # status
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     # -- Relacionamento --
     author = db.relationship('Author', back_populates='books')
