@@ -1,10 +1,7 @@
 import os
-from flask import Flask, Blueprint
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-from urllib.parse import quote_plus
-from .routes.client import bp as client_bp
-from .routes.publisher import bp as publisher_bp
 
 # Carrega as variáveis do .env
 load_dotenv()
@@ -26,11 +23,7 @@ def create_app():
     DB_HOST = os.getenv("DB_HOST")
     DB_NAME = os.getenv("DB_NAME")
 
-    # -- Codifica a senha --
-    safe_user = quote_plus(DB_USER)
-    safe_pass = quote_plus(DB_PASS)
-
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{safe_user}:{safe_pass}@{DB_HOST}/{DB_NAME}"
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql+pymysql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Conecta o 'db' ao 'app' que acabamos de criar
@@ -47,14 +40,12 @@ def create_app():
         db.create_all()
 
     # Importa e registra as rotas (views)
-    #from .routes.client import bp as client_bp
-    #from .routes.book import bp as book_bp
-    #from .routes.publisher import bp as publisher_bp
+    from .routes.client import bp as clients_bp
+    from .routes.publisher import bp as publishers_bp
 
 
-    app.register_blueprint(client_bp)
-    #app.register_blueprint(book_bp)
-    app.register_blueprint(publisher_bp)
+    app.register_blueprint(clients_bp)
+    app.register_blueprint(publishers_bp)
 
     # Retorna o app pronto
     return app
