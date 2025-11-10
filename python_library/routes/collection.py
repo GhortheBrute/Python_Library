@@ -31,7 +31,7 @@ def create_collection():
     # Transação de Banco de Dados
     try:
         # Criar o Collection
-        new_collection = Collection(Name='Name')
+        new_collection = Collection(Name=data.get('Name'))
         db.session.add(new_collection)
 
         # Se tudo certo, comitar a transação
@@ -173,12 +173,14 @@ def delete_collection(collection_id):
 
     return '', 204
 
+
 def get_collection_by_id(collection_id):
     return db.session.query(
         Collection
     ).filter(
         Collection.idCollection == collection_id,
-        ).first()  # .first() pega apenas um
+    ).first()  # .first() pega apenas um
+
 
 def get_collection_by_name(collection_name):
     return db.session.query(

@@ -32,9 +32,9 @@ def create_author():
     try:
         # Criar o Author
         new_author = Author(
-            FName='FName',
-            MName='MName',
-            LName='LName'
+            FName=data.get('FName'),
+            MName=data.get('MName'),
+            LName=data.get('LName')
         )
         db.session.add(new_author)
 

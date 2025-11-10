@@ -204,10 +204,13 @@ def get_book_by_isbn(isbn):
     return db.session.query(
         Book,
         Author,
-        Publisher
+        Publisher,
+        Collection
     ).join(
         Author,
         Publisher
+    ).outerjoin(
+        Collection
     ).filter(
         Book.ISBN == isbn,
         ).first()  # .first() pega apenas um

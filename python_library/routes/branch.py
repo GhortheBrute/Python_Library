@@ -48,7 +48,7 @@ def create_branch():
 
         # Criar a Branch
         new_branch = Branch(
-            BranchName='BranchName',
+            BranchName=data.get('BranchName'),
             idAddress=new_address.idAddress
         )
         db.session.add(new_branch)
@@ -63,7 +63,6 @@ def create_branch():
         db.session.rollback()
         logging.error(f"Failed to create branch: {e}")
         return jsonify({"error": f"Failed to create branch: {e}"}), 500
-
 
 @bp.route('/', methods=['GET'])
 def get_branches():

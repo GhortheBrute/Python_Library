@@ -8,7 +8,7 @@ from ..models import Book, Branch, PhysicalBook, Author, Publisher, Language
 # 'Blueprint' é como organizamos um grupo de rotas
 bp = Blueprint('physicalBooks', __name__, url_prefix='/api/physicalBooks')
 
-@bp.route('/', methods=('POST'))
+@bp.route('/', methods=['POST'])
 def create_book():
     """
     Endpoint for creating a book
@@ -98,7 +98,6 @@ def get_physical_books():
         logging.error(f'Failed to get physical books: {e}')
         return jsonify({'message': f'Failed to get physical books: {e}'}), 400
 
-
 @bp.route('/<int:book_id>', methods=['GET'])
 def get_physical_book(book_id):
     """
@@ -128,7 +127,6 @@ def get_physical_book(book_id):
         logging.error(f'Failed to get physical book: {e}')
         return jsonify({'message': f'Failed to get physical book: {e}'}), 400
 
-
 @bp.route('/<int:book_id>', methods=['PUT', 'PATCH'])
 def update_physical_book(book_id):
     """
@@ -147,7 +145,7 @@ def update_physical_book(book_id):
         physical_book = result[0]
 
         # Atualizar o livro
-        physical_book.idBranch = data["idBranch", physical_book.idBranch]
+        physical_book.idBranch = data.get("idBranch", physical_book.idBranch)
 
         db.session.commit()
         return jsonify({'message': 'Physical Book branch successfully updated'}), 200
@@ -156,27 +154,8 @@ def update_physical_book(book_id):
         logging.error(f'Failed to update physical book: {e}')
         return jsonify({'message': f'Failed to update physical book: {e}'}), 400
 
-@bp.route('/<int:book_id>', methods=['DELETE'])
-def delete_physical_book(book_id):
-    """
-    Endpoint for deleting a physical book
-    """
-    try:
-        result = get_physical_book_by_id(book_id)
-        if not result:
-            return jsonify({"error": "Physical Book not found"}), 404
 
-        physical_book = result[0]
-
-        physical_book.is_active = False
-        db.session.commit()
-        return '', 204
-    except Exception as e:
-        db.session.rollback()
-        logging.error(f'Failed to delete physical book: {e}')
-        return jsonify({'message': f'Failed to delete physical book: {e}'}), 400
-
-@bp.route('/<int:book_id>', methods=['PUT', 'PATCH'])
+@bp.route('/<int:book_id>/repair', methods=['PUT', 'PATCH'])
 def set_in_repair_physical_book(book_id):
     """
     Endpoint for setting and unsetting a Lost Physical Book
@@ -194,7 +173,7 @@ def set_in_repair_physical_book(book_id):
             physical_book.Status = "AVAILABLE"
 
         db.session.commit()
-        return jsonify({'message': 'Physical Book Status successfully updated'}), 200
+        return jsonify({'message': 'Physical Book Status successfully changed.'}), 200
     except Exception as e:
         db.session.rollback()
         logging.error(f'Failed to set physical book: {e}')

@@ -31,8 +31,8 @@ def create_language():
     try:
         # Criar o Language
         new_language = Language(
-            Code='Code',
-            Name='Name'
+            Code=data.get('Code'),
+            Name=data.get('Name')
         )
         db.session.add(new_language)
 
