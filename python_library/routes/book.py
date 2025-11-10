@@ -3,7 +3,7 @@ import logging
 from flask import Blueprint, request, jsonify
 
 from .. import db
-from ..models import Book, BookLoan, Branch, Publisher, Author, Collection
+from ..models import Book, Publisher, Author, Collection
 
 # 'Blueprint' é como organizamos um grupo de rotas
 bp = Blueprint('books', __name__, url_prefix='/api/books')
@@ -72,10 +72,13 @@ def get_books():
         query = db.session.query(
             Book,
             Author,
-            Publisher
+            Publisher,
+            Collection
         ).join(
             Author,
             Publisher
+        ).outerjoin(
+            Collection
         )
 
         # Adicionamos o filtro de status
@@ -92,7 +95,7 @@ def get_books():
 
         # 2. Formatamos os resultados para JSON
         output = []
-        for book, author, publisher in results:
+        for book, author, publisher, collection in results:
             book_data = {
                 'ISBN': book.ISBN,
                 'Title': book.Title,
@@ -100,7 +103,7 @@ def get_books():
                 'Publisher': publisher.Name,
                 'Edition': book.Edition,
                 'Language': book.Language,
-                'Collection': book.Collection,
+                'Collection': collection.Name,
                 'AgeRange': book.AgeRange,
                 'Review': book.Review
             }
@@ -126,7 +129,7 @@ def get_book(isbn):
             return jsonify({"error": "Book not found"}), 404
 
         # 3. Desempacotamos os resultados
-        book, author, publisher  = result
+        book, author, publisher, collection  = result
 
         # 4. Formatamos o JSON de resposta
         book_data = {
@@ -136,7 +139,7 @@ def get_book(isbn):
             'Publisher': publisher.Name,
             'Edition': book.Edition,
             'Language': book.Language,
-            'Collection': book.Collection,
+            'Collection': collection.Name,
             'AgeRange': book.AgeRange,
             'Review': book.Review
         }
@@ -145,6 +148,57 @@ def get_book(isbn):
     except Exception as e:
         logging.error(f"Failed to get book: {e}")
         return jsonify({"error": f"Failed to get book: {e}"}), 500
+
+@bp.route('/<string:isbn>', methods=['PUT', 'PATCH'])
+def update_book(isbn):
+    """
+    endpoint for updating a book
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        result = get_book_by_isbn(isbn)
+
+        if not result:
+            return jsonify({"error": "Book not found"}), 404
+
+        book, author, publisher = result
+
+        # Atualizar o livro
+        book.Title = data.get('Title', book.Title)
+        book.Edition = data.get('Edition', book.Edition)
+        book.Language = data.get('Language', book.Language)
+        book.Collection = data.get('Collection', book.Collection)
+        book.AgeRange = data.get('AgeRange', book.AgeRange)
+        book.idAuthor = data.get('idAuthor', book.idAuthor)
+        book.idPublisher = data.get('idPublisher', book.idPublisher)
+
+        db.session.commit()
+        return jsonify({'message': 'Book successfully updated'}), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Failed to update book: {e}")
+        return jsonify({"error": f"Failed to update book: {e}"}), 500
+
+@bp.route('/<int:id>', methods=['DELETE'])
+def delete_book(isbn):
+    """
+    endpoint for deleting a book
+    """
+    try:
+        result = get_book_by_isbn(isbn)
+        if not result:
+            return jsonify({"error": "Book not found"}), 404
+
+        book, author, publisher = result
+        book.is_active = False
+        db.session.commit()
+        return '', 204
+    except Exception as e:
+        logging.error(f"Failed to delete book: {e}")
+        return jsonify({"error": f"Failed to delete book: {e}"}), 500
 
 def get_book_by_isbn(isbn):
     return db.session.query(
@@ -157,3 +211,12 @@ def get_book_by_isbn(isbn):
     ).filter(
         Book.ISBN == isbn,
         ).first()  # .first() pega apenas um
+
+def get_book_by_title(title):
+    pass
+
+def get_book_by_author(author):
+    pass
+
+def get_book_by_publisher(publisher):
+    pass
