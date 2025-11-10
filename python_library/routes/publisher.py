@@ -63,3 +63,149 @@ def create_publisher():
         db.session.rollback()
         logging.error(f"Failed to create publisher: {e}")
         return jsonify({"error": f"Failed to create publisher: {e}"}), 500
+
+@bp.route('/', methods=['GET'])
+def get_publishers():
+    """
+    Endpoint for getting all publishers
+    """
+    try:
+        # 1. Fazer consulta juntando Publisher e Address
+        results = db.session.query(
+            Publisher,
+            Address
+        ).join(
+            Address
+        ).all()
+
+        output = []
+        for publisher, address in results:
+            publisher_data = {
+                'Name': publisher.Name,
+                'CNPJ': publisher.CNPJ,
+                'Address': {
+                    'Road': address.Road,
+                    'Neighbourhood': address.Neighbourhood,
+                    'Number': address.Number,
+                    'City': address.City,
+                    'State': address.State,
+                    'ZipCode': address.ZipCode,
+                    'Complement': address.Complement
+                }
+            }
+            output.append(publisher_data)
+
+        return jsonify({'publishers': output}), 200
+    except Exception as e:
+        logging.error(f"Failed to get publishers: {e}")
+        return jsonify({"error": f"Failed to get publishers: {e}"}), 500
+
+@bp.route('/<publisher_id>', methods=['GET'])
+def get_publisher(publisher_id):
+    """
+    Endpoint for getting a publisher by ID
+    """
+    try:
+        result = get_publisher_by_id(publisher_id)
+
+        if not result:
+            return jsonify({'message': 'Publisher not found'}), 404
+
+        publisher, address = result
+
+        publisher_data = {
+            'idPublisher': publisher.idPublisher,
+            'Name': publisher.Name,
+            'CNPJ': publisher.CNPJ,
+            'Address': {
+                'Road': address.Road,
+                'Neighbourhood': address.Neighbourhood,
+                'Number': address.Number,
+                'City': address.City,
+                'State': address.State,
+                'ZipCode': address.ZipCode,
+                'Complement': address.Complement
+            }
+        }
+        return jsonify({'publisher': publisher_data}), 200
+    except Exception as e:
+        logging.error(f"Failed to get publisher: {e}")
+        return jsonify({"error": f"Failed to get publisher: {e}"}), 500
+
+@bp.route('/<publisher_id>', methods=['PUT', 'PATCH'])
+def update_publisher(publisher_id):
+    """
+    Endpoint for updating a publisher
+    """
+    try:
+        # Obtém os dados do body
+        data = request.get_json()
+
+        # Se não houver nada no body, cancela o processo
+        if not data:
+            return jsonify({'message': 'No data provided'}), 400
+
+        # Reaproveita o código de busca por ID
+        result = get_publisher_by_id(publisher_id)
+
+        # Se retornar a busca vazia, cancela o processo
+        if not result:
+            return jsonify({'message': 'Publisher not found'}), 404
+
+        # Descompacta os objetos
+        publisher, address = result
+
+        # Atualiza o único campo possível de Publisher
+        # Senão, mantém o atual
+        publisher.Name = data.get('Name', publisher.Name)
+
+        # Atualizamos o endereço, se enviado no JSON
+        if 'Address' in data:
+            address_data = data['Address']
+            address.Road = address_data.get('Road', address.Road)
+            address.Neighbourhood = address_data.get('Neighbourhood', address.Neighbourhood)
+            address.Number = address_data.get('Number', address.Number)
+            address.City = address_data.get('City', address.City)
+            address.State = address_data.get('State', address.State)
+            address.ZipCode = address_data.get('ZipCode', address.ZipCode)
+            address.Complement = address_data.get('Complement', address.Complement)
+
+        # Salva as mudanças no banco
+        db.session.commit()
+
+        return jsonify({'publisher': "Publisher updated successfully"}), 200
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Failed to update publisher: {e}")
+        return jsonify({"error": f"Failed to update publisher: {e}"}), 500
+
+@bp.route('/<publisher_id>', methods=['DELETE'])
+def delete_publisher(publisher_id):
+    """
+    Endpoint for soft-deleting a publisher
+    """
+    try:
+        result = get_publisher_by_id(publisher_id)
+
+        if not result:
+            return jsonify({'message': 'Publisher not found'}), 404
+
+        publisher, address = result
+
+        publisher.is_active = True
+        db.session.commit()
+        return '', 204
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Failed to delete publisher: {e}")
+        return jsonify({"error": f"Failed to delete publisher: {e}"}), 500
+
+def get_publisher_by_id(publisher_id):
+    return db.session.query(
+        Publisher,
+        Address
+    ).join(
+        Address
+    ).filter(
+        Publisher.idPublisher == publisher_id
+    ).first()

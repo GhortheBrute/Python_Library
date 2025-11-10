@@ -55,6 +55,9 @@ class Publisher(db.Model):
     # Exemplo de chave estrangeira
     idAddress = db.Column(db.Integer, db.ForeignKey('Address.idAddress'), nullable=False)
 
+    # Atributo para aparecer em adição de novos livros
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
     # -- Relacionamento --
     books = db.relationship('Book', back_populates='publisher')
     address = db.relationship('Address', back_populates='publishers')
