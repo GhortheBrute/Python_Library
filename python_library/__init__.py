@@ -66,5 +66,10 @@ def create_app():
     app.register_blueprint(publisher_bp)
     app.register_blueprint(reserve_bp)
 
+    # -- INITIAL SEED --
+    from . import seed
+    seed.register_seed_command(app)
+    # -- END OF SEED --
+
     # Retorna o app pronto
     return app
