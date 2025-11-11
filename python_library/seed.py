@@ -51,7 +51,7 @@ def register_seed_command(app):
                     City=fake.city(),
                     State=fake.state_abbr(),
                     ZipCode=fake.postcode().replace('-', ''),
-                    Complement=fake.secondary_address() if random.choice([True, False]) else None
+                    Complement=fake.bothify(text='Apto ###') if random.choice([True, False]) else None
                 )
                 addresses.append(addr)
             db.session.add_all(addresses)
@@ -82,13 +82,83 @@ def register_seed_command(app):
                 collections.append(Collection(Name=name))
             db.session.add_all(collections)
 
-            # --- 6. Idiomas (2) ---
-            lang_pt = Language(Code="pt-BR", Name="Português do Brasil")
-            lang_en = Language(Code="en-US", Name="Inglês (EUA)")
-            db.session.add_all([lang_pt, lang_en])
-            languages = [lang_pt, lang_en]
+            # --- 6. Idiomas (Fonte ISO 639-1) ---
+            print("Populando idiomas...")
 
-            db.session.commit() # Commit para gerar IDs
+            # Esta é a sua "fonte" de dados padrão
+            language_list_source = [
+                {'code': 'pt-BR', 'name': 'Português (Brasil)'},
+                {'code': 'pt-PT', 'name': 'Português (Portugal)'},
+                {'code': 'en-US', 'name': 'Inglês (EUA)'},
+                {'code': 'en-GB', 'name': 'Inglês (Reino Unido)'},
+                {'code': 'en-AU', 'name': 'Inglês (Austrália)'},
+                {'code': 'en-CA', 'name': 'Inglês (Canadá)'},
+                {'code': 'es-ES', 'name': 'Espanhol (Espanha)'},
+                {'code': 'es-MX', 'name': 'Espanhol (México)'},
+                {'code': 'es-AR', 'name': 'Espanhol (Argentina)'},
+                {'code': 'es-CL', 'name': 'Espanhol (Chile)'},
+                {'code': 'fr-FR', 'name': 'Francês (França)'},
+                {'code': 'fr-CA', 'name': 'Francês (Canadá)'},
+                {'code': 'fr-BE', 'name': 'Francês (Bélgica)'},
+                {'code': 'fr-CH', 'name': 'Francês (Suíça)'},
+                {'code': 'de-DE', 'name': 'Alemão (Alemanha)'},
+                {'code': 'de-AT', 'name': 'Alemão (Áustria)'},
+                {'code': 'de-CH', 'name': 'Alemão (Suíça)'},
+                {'code': 'it-IT', 'name': 'Italiano (Itália)'},
+                {'code': 'it-CH', 'name': 'Italiano (Suíça)'},
+                {'code': 'ja-JP', 'name': 'Japonês'},
+                {'code': 'zh-CN', 'name': 'Chinês (Simplificado, China)'},
+                {'code': 'zh-TW', 'name': 'Chinês (Tradicional, Taiwan)'},
+                {'code': 'zh-HK', 'name': 'Chinês (Hong Kong)'},
+                {'code': 'ru-RU', 'name': 'Russo'},
+                {'code': 'ar-SA', 'name': 'Árabe (Arábia Saudita)'},
+                {'code': 'ar-EG', 'name': 'Árabe (Egito)'},
+                {'code': 'ar-MA', 'name': 'Árabe (Marrocos)'},
+                {'code': 'ko-KR', 'name': 'Coreano (Coreia do Sul)'},
+                {'code': 'ko-KP', 'name': 'Coreano (Coreia do Norte)'},
+                {'code': 'nl-NL', 'name': 'Holandês (Países Baixos)'},
+                {'code': 'nl-BE', 'name': 'Holandês (Bélgica)'},
+                {'code': 'sv-SE', 'name': 'Sueco (Suécia)'},
+                {'code': 'sv-FI', 'name': 'Sueco (Finlândia)'},
+                {'code': 'no-NO', 'name': 'Norueguês (Noruega)'},
+                {'code': 'fi-FI', 'name': 'Finlandês'},
+                {'code': 'pl-PL', 'name': 'Polonês'},
+                {'code': 'tr-TR', 'name': 'Turco'},
+                {'code': 'el-GR', 'name': 'Grego'},
+                {'code': 'he-IL', 'name': 'Hebraico'},
+                {'code': 'hi-IN', 'name': 'Hindi (Índia)'},
+                {'code': 'id-ID', 'name': 'Indonésio'},
+                {'code': 'th-TH', 'name': 'Tailandês'},
+                {'code': 'vi-VN', 'name': 'Vietnamita'},
+                {'code': 'uk-UA', 'name': 'Ucraniano'},
+                {'code': 'cs-CZ', 'name': 'Tcheco'},
+                {'code': 'sk-SK', 'name': 'Eslovaco'},
+                {'code': 'sl-SI', 'name': 'Esloveno'},
+                {'code': 'ro-RO', 'name': 'Romeno'},
+                {'code': 'bg-BG', 'name': 'Búlgaro'},
+                {'code': 'hu-HU', 'name': 'Húngaro'},
+                {'code': 'et-EE', 'name': 'Estoniano'},
+                {'code': 'lv-LV', 'name': 'Letão'},
+                {'code': 'lt-LT', 'name': 'Lituano'},
+                {'code': 'ga-IE', 'name': 'Irlandês'},
+                {'code': 'cy-GB', 'name': 'Galês'},
+                {'code': 'la', 'name': 'Latim'} # Exemplo sem região
+            ]
+
+
+            languages_to_add = []
+            for lang_data in language_list_source:
+                languages_to_add.append(
+                    Language(Code=lang_data['code'], Name=lang_data['name'])
+                )
+
+            db.session.add_all(languages_to_add)
+
+            # Commit para salvar os idiomas no banco
+            db.session.commit()
+
+            # Busca todos os idiomas que acabamos de criar para usar na criação de livros
+            languages = db.session.query(Language).all()
 
             # --- 7. Clientes (5) ---
             clients = []
@@ -130,16 +200,26 @@ def register_seed_command(app):
             # --- 8. Livros (Conceito) (20) ---
             books = []
             for i in range(20):
+
+                # --- CORREÇÃO LÓGICA ---
+                # 1. Primeiro, escolhemos a coleção (pode ser um objeto ou None)
+                chosen_collection = random.choice(collections + [None]) if collections else None
+
+                # 2. Agora criamos o livro
                 book = Book(
                     ISBN=fake.isbn13().replace('-',''),
                     Title=f"Livro Título Fictício {i}",
                     idAuthor=random.choice(authors).idAuthor,
                     idPublisher=random.choice(publishers).idPublisher,
                     Language=random.choice(languages).idLanguage,
-                    Collection=random.choice(collections + [None]).idCollection if collections else None,
+
+                    # 3. Atribuímos o ID se a coleção existir, senão atribuímos None
+                    Collection=chosen_collection.idCollection if chosen_collection else None,
+
                     Edition=str(random.randint(1, 5))
                 )
                 books.append(book)
+
             db.session.add_all(books)
             db.session.commit() # Commit livros
 

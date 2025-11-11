@@ -61,11 +61,15 @@ def get_physical_books():
             Publisher,
             Language
         ).join(
-            Book,
-            Branch,
-            Author,
-            Publisher,
-            Language
+            Book, PhysicalBook.ISBN == Book.ISBN
+        ).join(
+            Branch,PhysicalBook.idBranch == Branch.idBranch
+        ).join(
+            Author, Book.idAuthor == Author.idAuthor
+        ).join(
+            Publisher, Book.idPublisher == Publisher.idPublisher
+        ).join(
+            Language, Book.idLanguage == Language.idLanguage
         )
 
         if status_filter == 'active':
