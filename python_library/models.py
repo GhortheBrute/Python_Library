@@ -159,7 +159,7 @@ class PhysicalBook(db.Model):
     idPhysicalBook = db.Column(db.Integer, primary_key=True)
     ISBN = db.Column(db.String(13), db.ForeignKey('Book.ISBN'), nullable=False)
     idBranch = db.Column(db.Integer, db.ForeignKey('Branch.idBranch'), nullable=False)
-    Status = db.Column(db.Enum('AVAILABLE', 'BORROWED','IN REPAIR'), nullable=False, default='AVAILABLE')
+    Status = db.Column(db.Enum('AVAILABLE', 'BORROWED','IN REPAIR','LOST'), nullable=False, default='AVAILABLE')
 
     # -- Relacionamento --
     book = db.relationship('Book', back_populates='physical_books')

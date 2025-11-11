@@ -188,11 +188,15 @@ def get_physical_book_by_id(book_id):
         Publisher,
         Language
     ).join(
-        Book,
-        Branch,
-        Author,
-        Publisher,
-        Language
+        Book, PhysicalBook.ISBN == Book.ISBN
+    ).join(
+        Branch,PhysicalBook.idBranch == Branch.idBranch
+    ).join(
+        Author, Book.idAuthor == Author.idAuthor
+    ).join(
+        Publisher, Book.idPublisher == Publisher.idPublisher
+    ).join(
+        Language, Book.idLanguage == Language.idLanguage
     ).filter(
         PhysicalBook.idPhysicalBook == book_id,
         ).first()  # .first() pega apenas um

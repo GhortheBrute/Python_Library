@@ -38,7 +38,7 @@ def delete_reserve(reserve_id):
     :param reserve_id: <int> Reserve ID
     """
     try:
-        result = db.session.query(Reserve).filter(Reserve.id == reserve_id).first()
+        result = db.session.query(Reserve).filter(Reserve.idReserve == reserve_id).first()
 
         if not result:
             return jsonify({'message': 'Reserve not found!'}), 404
