@@ -14,6 +14,101 @@ def create_client():
     """
     Endpoint for creating a client
     Awaits a JSON with client details and address
+    ---
+    tags:
+      - Clients
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - Type
+            - Email
+            - Phone
+            - Address
+          properties:
+            Type:
+              type: string
+              enum: ['PF', 'PJ']
+              description: Tipo de pessoa (Física ou Jurídica)
+            Email:
+              type: string
+              example: "cliente@email.com"
+            Phone:
+              type: string
+              example: "(41) 99999-8888"
+
+            # --- Campos Específicos de PF ---
+            CPF:
+              type: string
+              description: (Obrigatório se Type=PF)
+              example: "12345678900"
+            FName:
+              type: string
+              description: (Obrigatório se Type=PF) Primeiro Nome
+            MName:
+              type: string
+              description: (Opcional) Nome do Meio
+            LName:
+              type: string
+              description: (Obrigatório se Type=PF) Sobrenome
+            Birthdate:
+              type: string
+              format: date
+              description: (Obrigatório se Type=PF) YYYY-MM-DD
+
+            # --- Campos Específicos de PJ ---
+            CNPJ:
+              type: string
+              description: (Obrigatório se Type=PJ)
+            Name:
+              type: string
+              description: (Obrigatório se Type=PJ) Razão Social
+            FantasyName:
+              type: string
+              description: (Opcional) Nome Fantasia
+
+            # --- O OBJETO ANINHADO (ADDRESS) ---
+            Address:
+              type: object
+              description: Dados do endereço do cliente
+              required:
+                - Road
+                - Neighbourhood
+                - City
+                - State
+                - ZipCode
+              properties:
+                Road:
+                  type: string
+                  example: "Rua das Flores"
+                Number:
+                  type: string
+                  example: "123"
+                Neighbourhood:
+                  type: string
+                  example: "Centro"
+                City:
+                  type: string
+                  example: "Curitiba"
+                State:
+                  type: string
+                  example: "PR"
+                ZipCode:
+                  type: string
+                  example: "80000-000"
+                Complement:
+                  type: string
+                  example: "Apto 101"
+    responses:
+      201:
+        description: Cliente criado com sucesso
+      400:
+        description: Dados inválidos ou faltando
+      500:
+        description: Erro interno
     """
     data = request.get_json()
 
@@ -82,7 +177,54 @@ def create_client():
             return jsonify({"error": f"Failed to create client"}), 500
 
     elif data.get('Type') == 'PJ':
-        return jsonify({"message": "Featured not implemented."}), 501
+        # Transação de Banco de Dados
+        try:
+            # 1. Criar o Endereço primeiro
+            address_data = data['Address']
+            new_address = Address(
+                Road=address_data.get('Road'),
+                Neighbourhood=address_data.get('Neighbourhood'),
+                Number=address_data.get('Number'),
+                City=address_data.get('City'),
+                State=address_data.get('State'),
+                ZipCode=address_data.get('ZipCode'),
+                Complement=address_data.get('Complement')
+            )
+            db.session.add(new_address)
+
+            # Flush para gerar os dados de Address
+            db.session.flush()
+
+            # 2. Criar o Cliente pai
+            new_client = Client(
+                Type='PJ',
+                idAddress=new_address.idAddress,  #Usar o ID do endereço gerado
+                Phone=data.get('Phone'),
+                Email=data.get('Email')
+            )
+            db.session.add(new_client)
+
+            # Flush para ter o idClient
+            db.session.flush()
+
+            new_client_jp = ClientJP(
+                idClient=new_client.idClient,
+                CNPJ=data.get('CNPJ'),
+                Name=data.get('Name'),
+                FantasyName=data.get('FantasyName'),
+            )
+            db.session.add(new_client_jp)
+
+            # 4. Se tudo certo, comitar a transação
+            db.session.commit()
+
+            return jsonify({'message': 'Client PJ successfully created'}), 201
+        except Exception as e:
+            # 5. Se algo deu errado, reverter tudo
+            db.session.rollback()
+            logging.error(f"Failed to create client: {e}")
+            return jsonify({"error": f"Failed to create client"}), 500
+
     else:
         return jsonify({"error": "Client type must be 'PF'"}), 201
 
@@ -137,7 +279,7 @@ def get_clients():
                     'idClient': client.idClient,
                     'Type': client.Type,
                     'CPF': client_fp.CPF,
-                    'Name': f"{client_fp.FName} {client_fp.MName} {client_fp.LName}",
+                    'Name': f"{client_fp.FName} {client_fp.MName} {client_fp.MName or ''}".strip(),
                     'Birthdate': client_fp.Birthdate.isoformat() if client_fp.Birthdate else None,
                     'Phone': client.Phone,
                     'Email': client.Email,

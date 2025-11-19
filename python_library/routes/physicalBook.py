@@ -12,6 +12,39 @@ bp = Blueprint('physicalBooks', __name__, url_prefix='/api/physicalBooks')
 def create_book():
     """
     Endpoint for creating a book
+    ---
+    tags:
+        - PhysicalBooks
+    parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+                - ISBN
+                - idBranch
+            properties:
+                ISBN:
+                    type: string
+                    example: 123456789012
+                    description: ISBN number
+                idBranch:
+                    type: integer
+                    example: 1
+                    description: Branch ID number
+    responses:
+        201:
+            description: Physical Book successfully created
+        400:
+            description: Validation error (missing data or wrong)
+            examples:
+                No Data:
+                    message: "No data provided"
+                Missing Field:
+                    Error: "One or more required fields are missing."
+        500:
+            description: Internal server error
     """
     data = request.get_json()
 
@@ -49,6 +82,21 @@ def get_physical_books():
     - ?status=active (default)
     - ?status=inactive
     - ?status=all
+    ---
+    tags:
+      - PhysicalBooks
+    parameters:
+      - name: status
+        in: query
+        type: string
+        default: active
+        enum: ['active', 'inactive', 'all']
+        description: Filter books by is_active (active, inactive or all)
+    responses:
+      200:
+        description: PhysicalBooks list recovered successfully
+      400:
+        description: Invalid 'status' parameter
     """
     try:
         status_filter = request.args.get('status', 'active')
@@ -69,7 +117,7 @@ def get_physical_books():
         ).join(
             Publisher, Book.idPublisher == Publisher.idPublisher
         ).join(
-            Language, Book.idLanguage == Language.idLanguage
+            Language, Book.Language == Language.idLanguage
         )
 
         if status_filter == 'active':
@@ -89,7 +137,7 @@ def get_physical_books():
                 'idPhysicalBook': physical_book.idPhysicalBook,
                 'ISBN': physical_book.ISBN,
                 'Title': book.Title,
-                'Author': f"{author.LName}, {author.FName} {author.MName}",
+                'Author': f"{author.LName}, {author.FName} {author.MName or ''}".strip(),
                 'Publisher': publisher.Name,
                 'Edition': book.Edition,
                 'Language': language.Name,
@@ -106,6 +154,22 @@ def get_physical_books():
 def get_physical_book(book_id):
     """
     Endpoint for getting a physical book by ID
+    ---
+    tags:
+        - PhysicalBooks
+    parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+          description: Unique Physical Book ID that needs to be found
+    responses:
+        200:
+            description: Physical Book successfully found
+        404:
+            description: Physical Book not found
+        500:
+            description: Internal server error
     """
     try:
         result = get_physical_book_by_id(book_id)
@@ -135,6 +199,35 @@ def get_physical_book(book_id):
 def update_physical_book(book_id):
     """
     Endpoint for updating a physical book
+    ---
+    tags:
+        - PhysicalBooks
+    parameters:
+        - name: id
+          in: path
+          type: integer
+          required: true
+          description: Unique Physical Book id that needs to be found
+
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+                idBranch:
+                    type: integer
+                    example: 1
+                    description: Branch ID
+    responses:
+        200:
+            description: Physical Book successfully updated
+        400:
+            description: No data provided
+        404:
+            description: Physical Book not found
+        500:
+            description: Internal server error
     """
     try:
         data = request.get_json()
@@ -163,6 +256,23 @@ def update_physical_book(book_id):
 def set_in_repair_physical_book(book_id):
     """
     Endpoint for setting and unsetting a Lost Physical Book
+    ---
+    tags:
+        - PhysicalBooks
+    parameters:
+        - name: book_id
+          in: path
+          type: integer
+          required: true
+          description: Unique Physical Book ID that needs to be found
+    responses:
+        200:
+            description: Physical Book Status successfully changed
+        400:
+            description: Failed to fetch physical book
+        404:
+            description: Physical Book not found
+
     """
     try:
         result = get_physical_book_by_id(book_id)

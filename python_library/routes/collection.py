@@ -14,6 +14,34 @@ def create_collection():
     """
     Endpoint for creating a collection
     Awaits a JSON with collection details and address
+    ---
+    tags:
+        - Collections
+    parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+                - Name
+            properties:
+                Name:
+                    type: string
+                    example: The Lord of the Rings
+                    description: Collection name
+    responses:
+        201:
+            description: Collection successfully created
+        400:
+            description: Validation error (missing data or wrong)
+            examples:
+                No Data:
+                    message: "No data provided"
+                Missing Field:
+                    Error: "One or more required fields are missing."
+        500:
+            description: Internal server error
     """
     data = request.get_json()
 
@@ -54,6 +82,23 @@ def get_collections():
     - ?status=active (default)
     - ?status=inactive
     - ?status=all
+    ---
+    tags:
+      - Collections
+    parameters:
+      - name: status
+        in: query
+        type: string
+        default: active
+        enum: ['active', 'inactive', 'all']
+        description: Filter books by is_active (active, inactive or all)
+    responses:
+      200:
+        description: Collections list recovered successfully
+      400:
+        description: Invalid 'status' parameter
+      500:
+        description: Internal server error
     """
     try:
         # Pegamos o parâmetro da url
@@ -96,6 +141,22 @@ def get_collections():
 def get_collection(collection_id):
     """
     Endpoint for getting a specific collection by ID
+    ---
+    tags:
+        - Collections
+    parameters:
+        - name: collection_id
+          in: path
+          type: integer
+          required: true
+          description: ID of collection
+    responses:
+        200:
+            description: A Collections list recovered successfully
+        404:
+            description: Collection not found
+        500:
+            description: Internal server error
     """
     try:
         # 1. Fazemos a mesma consulta, mas filtramos pelo ID
@@ -123,7 +184,26 @@ def get_collection(collection_id):
 @bp.route('/<int:collection_id>', methods=['PUT', 'PATCH'])
 def update_collection(collection_id):
     """
-    Endpoint for updating an collection
+    Endpoint for updating a collection
+    ---
+    tags:
+        - Collections
+    parameters:
+        - name: collection_id
+          in: path
+          type: integer
+          required: true
+          description: ID of collection
+    responses:
+        200:
+            description: Collection updated successfully
+        400:
+            description: No data provided
+        404:
+            description: Collection not found
+        500:
+            description: Internal server error
+
     """
 
     # 1. Obter os dados da requisição
@@ -161,6 +241,20 @@ def delete_collection(collection_id):
     """
     Endpoint for deleting a collection
     Verify if the collection has pendencies
+    ---
+    tags:
+        - Collections
+    parameters:
+        - name: collection_id
+          in: path
+          type: integer
+          required: true
+          description: ID of collection
+    responses:
+        204:
+            description: Collection deleted successfully
+        404:
+            description: Collection not found
     """
     # Soft Delete
     collection = db.session.query(Collection).filter_by(idCollection=collection_id).first()

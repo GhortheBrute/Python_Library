@@ -15,6 +15,32 @@ def create_reserve(client_id:int, isbn, branch_id:int):
     :param client_id: <int> Client ID
     :param isbn: <string> Book ISBN
     :param branch_id: <int> Branch ID
+    ---
+    tags:
+        - Reserves
+    parameters:
+        - name: client_id
+          in: path
+          required: true
+          type: integer
+          description: Client ID
+
+        - name: isbn
+          in: path
+          required: true
+          type: string
+          description: Book ISBN
+
+        - name: branch_id
+          in: path
+          required: true
+          type: integer
+          description: Branch ID
+    responses:
+        200:
+            description: Reserve created
+        500:
+         description: Internal server error
     """
     try:
         new_reserve = Reserve(
@@ -36,6 +62,22 @@ def delete_reserve(reserve_id):
     """
     Delete a reserve
     :param reserve_id: <int> Reserve ID
+    ---
+    tags:
+        - Reserves
+    parameters:
+        - name: reserve_id
+          in: path
+          required: true
+          type: integer
+          description: Reserve ID
+    responses:
+        204:
+            description: Reserve deleted
+        404:
+            description: Reserve not found
+        500:
+            description: Internal server error
     """
     try:
         result = db.session.query(Reserve).filter(Reserve.idReserve == reserve_id).first()

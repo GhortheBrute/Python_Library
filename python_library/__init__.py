@@ -3,6 +3,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 from urllib.parse import quote_plus
+from flasgger import Swagger
 
 # Carrega as variáveis do .env
 load_dotenv()
@@ -34,6 +35,9 @@ def create_app():
     # Conecta o 'db' ao 'app' que acabamos de criar
     db.init_app(app)
 
+    # Inicializa o Swagger
+    swagger = Swagger(app)
+
     # --- Registrar Models e Rotas ---
     # Importamos aqui para garantir que o 'db' esteja pronto
     with app.app_context():
@@ -53,6 +57,7 @@ def create_app():
     from .routes.physicalBook import bp as physical_book_bp
     from .routes.publisher import bp as publisher_bp
     from .routes.reserve import bp as reserve_bp
+    from .routes.reports import bp as report_bp
 
 
     app.register_blueprint(author_bp)
@@ -63,6 +68,7 @@ def create_app():
     app.register_blueprint(physical_book_bp)
     app.register_blueprint(publisher_bp)
     app.register_blueprint(reserve_bp)
+    app.register_blueprint(report_bp)
 
     # -- INITIAL SEED --
     from . import seed

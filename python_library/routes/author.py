@@ -14,6 +14,49 @@ def create_author():
     """
     Endpoint for creating an author
     Awaits a JSON with author details and address
+    ---
+    tags:
+        - Authors
+    parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+                - FName
+                - LName
+            properties:
+                FName:
+                    type: string
+                    example: John
+                    description: First name of the author
+                MName:
+                    type: string
+                    example: M
+                    description: (Optional) Middle name of the author
+                LName:
+                    type: string
+                    example: Silva
+                    description: Last name of the author
+    responses:
+        201:
+            description: Author successfully created
+            schema:
+                type: object
+                properties:
+                    message:
+                        type: string
+                        example: "Author successfully created"
+        400:
+            description: Validation error (missing data or wrong)
+            examples:
+                No Data:
+                    message: "No data provided"
+                Missing Field:
+                    Error: "One or more required fields are missing."
+        500:
+            description: Internal server error
     """
     data = request.get_json()
 
@@ -58,6 +101,43 @@ def get_authors():
     - ?status=active (default)
     - ?status=inactive
     - ?status=all
+    ---
+    tags:
+      - Authors
+    parameters:
+      - name: status
+        in: query
+        type: string
+        default: active
+        enum: ['active', 'inactive', 'all']
+        description: Filter authors by is_active (active, inactive or all)
+    responses:
+      200:
+        description: Authors list recovered successfully
+        schema:
+          type: object
+          properties:
+            authors:
+              type: array
+              items:
+                type: object
+                properties:
+                  idAuthor:
+                    type: integer
+                    example: 1
+                  Name:
+                    type: string
+                    example: "Tolkien, J.R.R."
+      400:
+        description: Invalid 'status' parameter
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Invalid 'status' parameter."
+      500:
+        description: Internal server error
     """
     try:
         # Pegamos o parâmetro da url
@@ -85,7 +165,7 @@ def get_authors():
         for author in results:
             author_data = {
                 'idAuthor': author.idAuthor,
-                'Name': f"{author.LName}, {author.FName} {author.MName} ",
+                'Name': f"{author.LName}, {author.FName} {author.MName or ''}".strip(),
             }
             output.append(author_data)
 
@@ -100,6 +180,37 @@ def get_authors():
 def get_author(author_id):
     """
     Endpoint for getting a specific author by ID
+    ---
+    tags:
+      - Authors
+    parameters:
+      - name: author_id
+        in: path
+        type: integer
+        required: true
+        description: Unique Author ID that needs search
+    responses:
+      200:
+        description: Author successfully found
+        schema:
+          type: object
+          properties:
+            idAuthor:
+              type: integer
+              example: 1
+            Name:
+              type: string
+              example: "Tolkien, J.R.R."
+      404:
+        description: Author not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Author not found"
+      500:
+        description: Erro interno do servidor
     """
     try:
         # 1. Fazemos a mesma consulta, mas filtramos pelo ID
@@ -128,6 +239,52 @@ def get_author(author_id):
 def update_author(author_id):
     """
     Endpoint for updating an author
+    ---
+    tags:
+      - Authors
+    parameters:
+      - name: author_id
+        in: path
+        type: integer
+        required: true
+        description: Unique Author ID that needs search
+
+      - name: body
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                FName:
+                    type: string
+                    example: John
+                    description: First name of the author
+                MName:
+                    type: string
+                    example: M
+                    description: (Optional) Middle name of the author
+                LName:
+                    type: string
+                    example: Silva
+                    description: Last name of the author
+    responses:
+      200:
+        description: Author successfully updated
+        schema:
+          type: object
+          properties:
+            idAuthor:
+              type: integer
+              example: 1
+            Name:
+              type: string
+              example: "Tolkien, J.R.R."
+      400:
+        description: No data provided
+      404:
+        description: Author not found
+      500:
+        description: Server internal error
     """
 
     # 1. Obter os dados da requisição
@@ -156,7 +313,7 @@ def update_author(author_id):
         # 5. Salvar as mudanças no banco
         db.session.commit()
 
-        return jsonify({"error": "Author updated successfully"}), 200
+        return jsonify({"message": "Author updated successfully"}), 200
     except Exception as e:
         logging.error(f"Failed to update author: {e}")
         return jsonify({"error": f"Failed to update author: {e}"}), 500
@@ -167,6 +324,26 @@ def delete_author(author_id):
     """
     Endpoint for deleting an author
     Verify if the author has pendencies
+    ---
+    tags:
+      - Authors
+    parameters:
+      - name: author_id
+        in: path
+        type: integer
+        required: true
+        description: Unique Author ID that needs search
+    responses:
+      204:
+        description: Author successfully deleted
+      404:
+        description: Author not found
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: "Author not found"
     """
     # Soft Delete
     author = db.session.query(Author).filter_by(idAuthor=author_id).first()

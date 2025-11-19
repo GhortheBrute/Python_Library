@@ -94,6 +94,7 @@ class Client(db.Model):
     client_fp = db.relationship('ClientFP', back_populates='client', uselist=False)
     client_jp = db.relationship('ClientJP', back_populates='client', uselist=False)
     reserves = db.relationship('Reserve', back_populates='client')
+    reviews = db.relationship('BookReview', back_populates='client')
 
 class ClientFP(db.Model):
     __tablename__ = "ClientFP"
@@ -153,6 +154,7 @@ class Book(db.Model):
     collections = db.relationship('Collection', back_populates='books')
     language = db.relationship('Language', back_populates='books')
     reserves = db.relationship('Reserve', back_populates='book')
+    reviews = db.relationship('BookReview', back_populates='book')
 
 class PhysicalBook(db.Model):
     __tablename__ = "PhysicalBook"
@@ -193,3 +195,21 @@ class Reserve(db.Model):
     book = db.relationship('Book', back_populates='reserves')
     branch = db.relationship('Branch', back_populates='reserves')
     client = db.relationship('Client', back_populates='reserves')
+
+class BookReview(db.Model):
+    __tablename__ = "BookReview"
+    idBookReview = db.Column(db.Integer, primary_key=True)
+
+    # Quem avaliou qual livro
+    idClient = db.Column(db.Integer, db.ForeignKey('Client.idClient'), nullable=False)
+    ISBN = db.Column(db.String(13), db.ForeignKey('Book.ISBN'), nullable=False)
+
+    # O conteúdo da avaliação
+    Rating = db.Column(db.Integer, nullable=False) # Nota de 1 a 5
+    Comment = db.Column(db.String(500), nullable=True) # Comentário opcional
+    ReviewDate = db.Column(TIMESTAMP, nullable=False, default=db.func.now())
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
+
+    # -- Relacionamentos --
+    client = db.relationship('Client', back_populates='reviews')
+    book = db.relationship('Book', back_populates='reviews')

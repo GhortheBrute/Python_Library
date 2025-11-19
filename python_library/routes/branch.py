@@ -14,6 +14,71 @@ def create_branch():
     """
     Endpoint for creating a branch
     Awaits a JSON with branch details and address
+    ---
+    tags:
+        - Branchs
+    parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+                - Address
+                - BranchName
+            properties:
+                BranchName:
+                    type: string
+                    example: Branch A
+                    description: Branch name
+                Address:
+                    type: object
+                    description: Address information
+                    required:
+                        - Road
+                        - Neighbourhood
+                        - City
+                        - State
+                        - ZipCode
+                    properties:
+                        Road:
+                          type: string
+                          example: "Rua das Flores"
+                          description: Street name
+                        Number:
+                          type: string
+                          example: "123"
+                          description: Address number
+                        Neighbourhood:
+                          type: string
+                          example: "Centro"
+                          description: Neighbourhood name
+                        City:
+                          type: string
+                          example: "Curitiba"
+                          description: City name
+                        State:
+                          type: string
+                          example: "PR"
+                          description: State/Province name
+                        ZipCode:
+                          type: string
+                          example: "80000-000"
+                          description: Zip Code
+                        Complement:
+                          type: string
+                          example: "Apto 101"
+                          description: Any complementary address info
+    responses:
+        201:
+            description: Branch successfully created
+        400:
+            description: No data provided
+        404:
+            description: One or more required fields are missing
+        500:
+            description: Internal server error
+
     """
     data = request.get_json()
 
@@ -26,7 +91,7 @@ def create_branch():
     # Validação de dados Pessoa Física
     for field in required_fields:
         if field not in data:
-            return jsonify({"Error": f"Required field {field} is missing"}), 400
+            return jsonify({"Error": f"Required field {field} is missing"}), 404
 
     # Transação de Banco de Dados
     try:
@@ -72,6 +137,23 @@ def get_branches():
     - ?status=active (default)
     - ?status=inactive
     - ?status=all
+    ---
+    tags:
+      - Branches
+    parameters:
+      - name: status
+        in: query
+        type: string
+        default: active
+        enum: ['active', 'inactive', 'all']
+        description: Filter books by is_active (active, inactive or all)
+    responses:
+        200:
+            description: Branches list recovered successfully
+        400:
+            description: Invalid 'status' parameter
+        500:
+            description: Internal server error
     """
     try:
         # Pegamos o parâmetro da url
@@ -128,6 +210,22 @@ def get_branches():
 def get_branch(branch_id):
     """
     Endpoint for getting a specific branch by ID
+    ---
+    tags:
+        - Branches
+    parameters:
+        - name: branch_id
+          in: path
+          type: integer
+          required: true
+          description: Branch ID to be found
+    responses:
+        200:
+            description: Branch details recovered successfully
+        404:
+            description: Branch not found
+        500:
+            description: Internal server error
     """
     try:
         # 1. Fazemos a mesma consulta, mas filtramos pelo ID
@@ -165,6 +263,67 @@ def get_branch(branch_id):
 def update_branch(branch_id):
     """
     Endpoint for updating a branch
+    ---
+    tags:
+        - Branches
+    parameters:
+        - name: branch_id
+          in: path
+          type: integer
+          required: true
+          description: Branch ID to be found
+
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+                BranchName:
+                    type: string
+                    example: Branch A
+                    description: Branch Name
+                Address:
+                    type: object
+                    description: Address information
+                    properties:
+                        Road:
+                          type: string
+                          example: "Rua das Flores"
+                          description: Street name
+                        Number:
+                          type: string
+                          example: "123"
+                          description: Address number
+                        Neighbourhood:
+                          type: string
+                          example: "Centro"
+                          description: Neighbourhood name
+                        City:
+                          type: string
+                          example: "Curitiba"
+                          description: City name
+                        State:
+                          type: string
+                          example: "PR"
+                          description: State/Province name
+                        ZipCode:
+                          type: string
+                          example: "80000-000"
+                          description: Zip Code
+                        Complement:
+                          type: string
+                          example: "Apto 101"
+                          description: Any complementary address info
+    responses:
+        200:
+            description: Branch details updated successfully
+        400:
+            description: No data provided
+        404:
+            description: Branch not found
+        500:
+            description: Internal server error
     """
 
     # 1. Obter os dados da requisição
@@ -212,6 +371,20 @@ def delete_branch(branch_id):
     """
     Endpoint for deleting a branch
     Verify if the branch has pendencies
+    ---
+    tags:
+        - Branches
+    parameters:
+        - name: branch_id
+          in: path
+          type: integer
+          required: true
+          description: Branch ID to be found
+    responses:
+        204:
+            description: Branch deleted successfully
+        404:
+            description: Branch not found
     """
     # Soft Delete
     branch = db.session.query(Branch).filter_by(idBranch=branch_id).first()

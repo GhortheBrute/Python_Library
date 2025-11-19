@@ -13,6 +13,75 @@ def create_publisher():
     """
     Endpoint for creating a publisher
     Awaits a JSON with publisher details and address
+    ---
+    tags:
+        - Publishers
+    parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+                - Address
+                - CNPJ
+                - Name
+            properties:
+                CNPJ:
+                    type: string
+                    example: 10123456000100
+                    description: Unique CNPJ of publisher
+                Name:
+                    type: string
+                    example: Publisher A
+                    description: Publisher name
+                Address:
+                    type: object
+                    description: Address information
+                    required:
+                        - Road
+                        - Neighbourhood
+                        - City
+                        - State
+                        - ZipCode
+                    properties:
+                        Road:
+                          type: string
+                          example: "Rua das Flores"
+                          description: Street name
+                        Number:
+                          type: string
+                          example: "123"
+                          description: Address number
+                        Neighbourhood:
+                          type: string
+                          example: "Centro"
+                          description: Neighbourhood name
+                        City:
+                          type: string
+                          example: "Curitiba"
+                          description: City name
+                        State:
+                          type: string
+                          example: "PR"
+                          description: State/Province name
+                        ZipCode:
+                          type: string
+                          example: "80000-000"
+                          description: Zip Code
+                        Complement:
+                          type: string
+                          example: "Apto 101"
+                          description: Any complementary address info
+    responses:
+        201:
+            description: Publisher successfully created
+        400:
+            description: No data provided
+        404:
+            description: One or more required fields are missing
+        500:
+            description: Internal server error
     """
     data = request.get_json()
 
@@ -68,6 +137,16 @@ def create_publisher():
 def get_publishers():
     """
     Endpoint for getting all publishers
+    ---
+    tags:
+        - Publishers
+    responses:
+        200:
+            description: Publishers list successfully recovered
+        400:
+            description: Invalid 'status' parameters
+        500:
+            description: Internal server error
     """
     try:
         # Filtros
@@ -122,6 +201,22 @@ def get_publishers():
 def get_publisher(publisher_id):
     """
     Endpoint for getting a publisher by ID
+    ---
+    tags:
+        - Publishers
+    parameters:
+        - name: publisher_id
+          in: path
+          type: integer
+          required: true
+          description: Publisher ID that needs to be found
+    responses:
+        200:
+            description: Publisher successfully recovered
+        404:
+            description: Publisher not found
+        500:
+            description: Internal server error
     """
     try:
         result = get_publisher_by_id(publisher_id)
@@ -154,6 +249,68 @@ def get_publisher(publisher_id):
 def update_publisher(publisher_id):
     """
     Endpoint for updating a publisher
+    ---
+    tags:
+        - Publishers
+    parameters:
+        - name: publisher_id
+          in: path
+          type: integer
+          required: true
+          description: Publisher ID that needs to be updated
+
+        - name: body
+          in: body
+          required: true
+          schema:
+          type: object
+          properties:
+            Name:
+                type: string
+                example: Publisher A
+                description: Publisher Name
+            Address:
+                    type: object
+                    description: Address information
+                    properties:
+                        Road:
+                          type: string
+                          example: "Rua das Flores"
+                          description: Street name
+                        Number:
+                          type: string
+                          example: "123"
+                          description: Address number
+                        Neighbourhood:
+                          type: string
+                          example: "Centro"
+                          description: Neighbourhood name
+                        City:
+                          type: string
+                          example: "Curitiba"
+                          description: City name
+                        State:
+                          type: string
+                          example: "PR"
+                          description: State/Province name
+                        ZipCode:
+                          type: string
+                          example: "80000-000"
+                          description: Zip Code
+                        Complement:
+                          type: string
+                          example: "Apto 101"
+                          description: Any complementary address info
+    responses:
+        200:
+            description: Publisher details updated successfully
+        400:
+            description: No data provided
+        404:
+            description: Publisher not found
+        500:
+            description: Internal server error
+
     """
     try:
         # Obtém os dados do body
@@ -201,10 +358,22 @@ def update_publisher(publisher_id):
 def delete_publisher(publisher_id):
     """
     Endpoint for soft-deleting a publisher
-    Accepts a 'status' query param:
-    - ?status=active (default)
-    - ?status=inactive
-    - ?status=all
+    ---
+    tags:
+        - Publishers
+    parameters:
+        - name: publisher_id
+          in: path
+          type: integer
+          required: true
+          description: Publisher ID that needs to be deleted
+    responses:
+        204:
+            description: Publisher successfully marked as inactive
+        404:
+            description: Publisher not found
+        500:
+            description: Internal server error
     """
     try:
         result = get_publisher_by_id(publisher_id)

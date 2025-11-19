@@ -293,6 +293,20 @@ def register_seed_command(app):
             )
             db.session.add_all([reserve1, reserve2])
 
+            # --- 12. Reviews (Bônus) ---
+            from .models import BookReview # Importe no topo
+
+            # Cliente 0 avalia Livro 0 com nota 5
+            rev1 = BookReview(idClient=clients[0].idClient, ISBN=books[0].ISBN, Rating=5, Comment="Adorei!")
+            # Cliente 1 avalia Livro 0 com nota 3
+            rev2 = BookReview(idClient=clients[1].idClient, ISBN=books[0].ISBN, Rating=3, Comment="Bom, mas cansativo.")
+
+            db.session.add_all([rev1, rev2])
+
+            # Importante: No seed, precisamos setar a média manualmente ou chamar a lógica
+            # Como é seed, podemos forçar:
+            books[0].Review = 4.0
+
             # Comita tudo
             db.session.commit()
             print(f">>> Banco de dados populado com sucesso!")

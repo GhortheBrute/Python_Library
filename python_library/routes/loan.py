@@ -13,6 +13,38 @@ bp = Blueprint('loans', __name__, url_prefix='/api/loans')
 def create_loan():
     """
     Endpoint for creating a loan
+    ---
+    tags:
+        - Loans
+    parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            required:
+                - idPhysicalBook
+                - idClient
+            properties:
+                idPhysicalBook:
+                    type: integer
+                    example: 1
+                    description: The Physical Book ID
+                idClient:
+                    type: integer
+                    example: 2
+                    description: The Client ID
+                BorrowTimeSolicited:
+                    type: integer
+                    example: 14
+                    description: (Optional) Days Solicited for the loan
+    responses:
+        201:
+            description: Loan created successfully
+        404:
+            description: Book or Client not found
+        409:
+            description: Book unavailable
     """
     data = request.get_json()
     if not data:
@@ -61,6 +93,20 @@ def return_loan(loan_id):
     """
     Endpoint to return a loan
     :param loan_id: <int> loan id
+    tags:
+        - Loans
+    parameters:
+        - name: loan_id
+          in: path
+          type: integer
+          required: true
+    responses:
+        200:
+            description: Loan returned successfully
+        404:
+            description: Loan not found
+        500:
+            description: Internal server error
     """
     try:
         result = get_loan_by_id(loan_id)
@@ -85,6 +131,20 @@ def lost_loan(loan_id):
     """
     Endpoint to set and unset a loan as LOST
     :param loan_id: <int> loan id
+    tags:
+        - Loans
+    parameters:
+        - name: loan_id
+          in: path
+          type: integer
+          required: true
+    responses:
+        200:
+            description: Loan set successfully
+        404:
+            description: Loan not found
+        500:
+            description: Internal server error
     """
     try:
         result = get_loan_by_id(loan_id)
