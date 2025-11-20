@@ -248,6 +248,8 @@ def get_books():
                 Author.LName.ilike(f"%{author_filter}%")
             ))
 
+        query = query.order_by(Book.Title)
+
         results = query.all()
 
         if not results:
