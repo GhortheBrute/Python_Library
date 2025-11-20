@@ -11,6 +11,10 @@ from .models import (
 # Inicializa o Faker para gerar dados em português
 fake = Faker('pt_BR')
 
+# Para executar o seed
+# poetry run flask seed-db
+# no terminal
+
 def register_seed_command(app):
     """Register commands 'seed-db' for this application"""
 
