@@ -117,7 +117,7 @@ def create_client():
 
     # Validação simples
     required_fields_fp = ['Email', 'Phone', 'Address', 'CPF', 'FName', 'LName', 'Birthdate']
-    required_fields_jp = ['Email', 'Phone', 'Adress', 'CNPJ', 'Name']
+    required_fields_jp = ['Email', 'Phone', 'Address', 'CNPJ', 'Name']
 
     # Validação de dados Pessoa Física
     if data.get('Type') == 'PF':
@@ -177,6 +177,12 @@ def create_client():
             return jsonify({"error": f"Failed to create client"}), 500
 
     elif data.get('Type') == 'PJ':
+        # Validação de dados Pessoa Física
+        if data.get('Type') == 'PJ':
+            for field in required_fields_jp:
+                if field not in data:
+                    return jsonify({"Error": f"Required field {field} is missing"}), 400
+
         # Transação de Banco de Dados
         try:
             # 1. Criar o Endereço primeiro
@@ -237,6 +243,23 @@ def get_clients():
     - ?status=active (default)
     - ?status=inactive
     - ?status=all
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: status
+        in: query
+        type: string
+        default: active
+        enum: ['active', 'inactive', 'all']
+        description: Filter clients by is_active (active, inactive or all)
+    responses:
+      200:
+        description: Clients list recovered successfully
+      400:
+        description: Invalid 'status' parameter
+      500:
+        description: Internal server error
     """
     try:
         # Pegamos o parâmetro da url
@@ -328,6 +351,22 @@ def get_clients():
 def get_client(client_id):
     """
     Endpoint for getting a specific client by ID
+    ---
+    tags:
+      - Clients
+    parameters:
+      - name: client_id
+        in: path
+        type: integer
+        required: true
+        description: Unique Client ID that needs search
+    responses:
+      200:
+        description: Client successfully found
+      404:
+        description: Client not found
+      500:
+        description: Erro interno do servidor
     """
     try:
         # 1. Fazemos a mesma consulta, mas filtramos pelo ID
@@ -398,6 +437,88 @@ def get_client(client_id):
 def update_client(client_id):
     """
     Endpoint for updating a client
+    ---
+    tags:
+      - Clients
+    parameters:
+      - name: client_id
+        in: path
+        type: integer
+        required: true
+        description: Unique Client ID that needs search
+
+      - name: body
+        in: body
+        required: true
+        schema:
+            type: object
+            properties:
+                Email:
+                  type: string
+                  example: "cliente@email.com"
+                Phone:
+                  type: string
+                  example: "(41) 99999-8888"
+
+                # --- Campos Específicos de PF ---
+                FName:
+                  type: string
+                  description: Primeiro Nome
+                MName:
+                  type: string
+                  description: (Opcional) Nome do Meio
+                LName:
+                  type: string
+                  description: Sobrenome
+
+                # --- Campos Específicos de PJ ---
+                Name:
+                  type: string
+                  description: Razão Social
+                FantasyName:
+                  type: string
+                  description: Nome Fantasia
+                Address:
+                    type: object
+                    description: Address information
+                    properties:
+                        Road:
+                          type: string
+                          example: "Rua das Flores"
+                          description: Street name
+                        Number:
+                          type: string
+                          example: "123"
+                          description: Address number
+                        Neighbourhood:
+                          type: string
+                          example: "Centro"
+                          description: Neighbourhood name
+                        City:
+                          type: string
+                          example: "Curitiba"
+                          description: City name
+                        State:
+                          type: string
+                          example: "PR"
+                          description: State/Province name
+                        ZipCode:
+                          type: string
+                          example: "80000-000"
+                          description: Zip Code
+                        Complement:
+                          type: string
+                          example: "Apto 101"
+                          description: Any complementary address info
+    responses:
+      200:
+        description: Client successfully updated
+      400:
+        description: No data provided
+      404:
+        description: Client not found
+      500:
+        description: Server internal error
     """
 
     # 1. Obter os dados da requisição
@@ -461,6 +582,20 @@ def delete_client(client_id):
     """
     Endpoint for deleting a client
     Verify if the client has pendencies
+    ---
+    tags:
+        - Clients
+    parameters:
+        - name: client_id
+          in: path
+          type: integer
+          required: true
+          description: Client ID to be found
+    responses:
+        204:
+            description: Client deleted successfully
+        404:
+            description: Client not found
     """
     # Soft Delete
     client = db.session.query(Client).filter_by(idClient=client_id).first()
