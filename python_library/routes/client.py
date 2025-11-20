@@ -3,7 +3,7 @@ import logging
 from flask import Blueprint, request, jsonify
 
 from .. import db
-from ..models import Address, Client, ClientFP, ClientJP
+from ..models import Address, Client, ClientFP, ClientJP, BookReview, Book
 
 # 'Blueprint' é como organizamos um grupo de rotas
 bp = Blueprint('clients', __name__, url_prefix='/api/clients')
@@ -531,6 +531,94 @@ def delete_client(client_id):
     #     logging.error(f"Failed to delete client: {e}")
     #     return jsonify({"error": f"Failed to delete client: {e}"}), 500
 
+
+@bp.route('/<client_id>/reviews', methods=['GET'])
+def get_client_review_history(client_id):
+    """
+    Endpoint for getting client review history
+    ---
+    tags:
+        - Clients
+    parameters:
+      - name: client_id
+        in: path
+        type: integer
+        required: true
+        description: ID do cliente
+    responses:
+      200:
+        description: Histórico recuperado com sucesso
+        schema:
+          type: object
+          properties:
+            client:
+              type: string
+              example: "João Silva"
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  BookTitle:
+                    type: string
+                  Rating:
+                    type: integer
+                  Comment:
+                    type: string
+                  Date:
+                    type: string
+                  Status:
+                    type: string
+                    example: "Atual"
+      404:
+        description: Cliente não encontrado
+    """
+    try:
+        # 1. Verificar se o cliente existe
+        client = db.session.get(Client, client_id)
+        if not client:
+            return jsonify({"error": "Client not found"}), 404
+
+        # 2. Buscar as reviews
+        # Juntando com Book para pegar o título
+        # Ordenamos por data decrescente
+        results = db.session.query(
+            BookReview,
+            Book
+        ).join(
+            Book, BookReview.ISBN == Book.ISBN
+        ).filter(
+            BookReview.idClient == client_id
+        ).order_by(
+            BookReview.ReviewDate.desc()
+        ).all()
+
+        # 3. Formatar a saída
+        history = []
+        for review, book in results:
+            history.append({
+                'BookTitle': book.Title,
+                'ISBN': book.ISBN,
+                'Rating': review.Rating,
+                'Comment': review.Comment,
+                'Date': review.ReviewDate.isoformat(),
+                'Status': 'Atual' if review.is_active else 'Arquivado'
+            })
+
+        client_name = 'Cliente'
+        if client.Type == 'PF' and client.client_fp:
+            client_name = f"{client.client_fp.FName} {client.client_fp.MName} {client.client_fp.LName}".strip()
+        elif client.Type == 'PJ' and client.client_jp:
+            client_name = client.client_jp.FantasyName
+
+        return jsonify({
+            "client": client_name,
+            "count": len(history),
+            "history": history
+        }), 200
+    except Exception as e:
+        logging.error(f"Failed to get client history: {e}")
+        return jsonify({"error": f"Failed to get client history: {e}"}), 500
 
 def get_client_by_id(client_id):
     return db.session.query(

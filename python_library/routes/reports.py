@@ -59,7 +59,7 @@ def get_overdue_loans():
             # Descobrir o nome do cliente
             client_name = "Desconhecido"
             if client.Type == 'PF' and client_fp:
-                client_name = f"{client_fp.FName} {client_fp.LName}"
+                client_name = f"{client_fp.FName} {client.client_fp.MName} {client_fp.LName}".strip()
             elif client.Type == 'JP' and client_jp:
                 client_name = client_jp.FantasyName or client_jp.Name
 

@@ -147,9 +147,9 @@ def get_book_reviews(isbn):
             # Lógica simplificada para nome do cliente
             client_name = "Cliente Anônimo"
             if client.Type == 'PF' and client.client_fp:
-                client_name = f"{client.client_fp.FName} {client.client_fp.LName}"
+                client_name = f"{client.client_fp.FName} {client.client_fp.MName} {client.client_fp.LName}".strip()
             elif client.Type == 'PJ' and client.client_jp:
-                client_name = client.client_jp.FantasyName
+                client_name = client.client_jp.FantasyName or client.client_jp.Name
 
             output.append({
                 'Rating': review.Rating,
