@@ -139,7 +139,7 @@ def get_book_reviews(isbn):
             Client
         ).filter(
             BookReview.ISBN == isbn,
-            BookReview.Review.is_active == True
+            BookReview.is_active == True
         ).all())
 
         output = []

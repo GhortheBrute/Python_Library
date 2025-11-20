@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 from urllib.parse import quote_plus
 from flasgger import Swagger
+from flask_cors import CORS
 
 # Carrega as variáveis do .env
 load_dotenv()
@@ -18,6 +19,8 @@ def create_app():
     Ela cria e configura a instância do app Flask.
     """
     app = Flask(__name__)
+
+    CORS(app)
 
     # --- Configuração do Banco de Dados ---
     DB_USER = os.getenv("DB_USER")
@@ -58,6 +61,7 @@ def create_app():
     from .routes.publisher import bp as publisher_bp
     from .routes.reserve import bp as reserve_bp
     from .routes.reports import bp as report_bp
+    from .routes.review import bp as review_bp
 
 
     app.register_blueprint(author_bp)
@@ -69,6 +73,7 @@ def create_app():
     app.register_blueprint(publisher_bp)
     app.register_blueprint(reserve_bp)
     app.register_blueprint(report_bp)
+    app.register_blueprint(review_bp)
 
     # -- INITIAL SEED --
     from . import seed
