@@ -1,0 +1,46 @@
+.loan-form {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.loading .error {
+    padding: 20px;
+}
+
+.error {
+    color: #f00;
+}
+
+.loan-form__form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.loan-form__selection {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.loan-form__select {
+    width: 100%;
+    padding: 8px;
+}
+
+.loan-form__note {
+    color: #666;
+}
+
+.loan-form__submit {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}

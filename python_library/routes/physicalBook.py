@@ -8,7 +8,7 @@ from ..models import Book, Branch, PhysicalBook, Author, Publisher, Language
 # 'Blueprint' é como organizamos um grupo de rotas
 bp = Blueprint('physicalBooks', __name__, url_prefix='/api/physicalBooks')
 
-@bp.route('/', methods=['POST'])
+@bp.route('/', methods=['POST'], strict_slashes=False)
 def create_book():
     """
     Endpoint for creating a book

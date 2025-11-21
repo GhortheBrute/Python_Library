@@ -57,6 +57,7 @@ def create_app():
     from .routes.book import bp as book_bp
     from .routes.client import bp as client_bp
     from .routes.collection import bp as collection_bp
+    from .routes.loan import bp as loan_bp
     from .routes.physicalBook import bp as physical_book_bp
     from .routes.publisher import bp as publisher_bp
     from .routes.reserve import bp as reserve_bp
@@ -69,6 +70,7 @@ def create_app():
     app.register_blueprint(book_bp)
     app.register_blueprint(client_bp)
     app.register_blueprint(collection_bp)
+    app.register_blueprint(loan_bp)
     app.register_blueprint(physical_book_bp)
     app.register_blueprint(publisher_bp)
     app.register_blueprint(reserve_bp)

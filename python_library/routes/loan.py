@@ -9,7 +9,7 @@ from ..models import Book, BookLoan, PhysicalBook, Client, Branch, ClientJP, Cli
 # 'Blueprint' é como organizamos um grupo de rotas
 bp = Blueprint('loans', __name__, url_prefix='/api/loans')
 
-@bp.route('/', methods=['POST'])
+@bp.route('/', methods=['POST'], strict_slashes=False)
 def create_loan():
     """
     Endpoint for creating a loan

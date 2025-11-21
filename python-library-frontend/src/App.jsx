@@ -3,6 +3,7 @@ import BookList from "./components/BookList";
 import Navbar from "./components/Navbar";
 import ClientList from "./components/ClientList.jsx";
 import ClientForm from "./components/ClientForm.jsx";
+import LoanForm from "./components/LoanForm.jsx";
 
 function App() {
     return (
@@ -15,9 +16,9 @@ function App() {
                     <Route path="/" element={<BookList />} />
                     <Route path='/clientes' element={<ClientList />} />
                     <Route path='/clientes/novo' element={<ClientForm />} />
-
+                    <Route path='/emprestimos' element={<LoanForm />}/>
                     {/* Futuras rotas: */}
-                    <Route path='/emprestimos' element={<h2>Página de Empréstimos (Em construção)</h2>}/>
+
                     <Route path='/relatorios' element={<h2>Página de Relatórios (Em construção)</h2>}/>
                 </Routes>
             </div>
