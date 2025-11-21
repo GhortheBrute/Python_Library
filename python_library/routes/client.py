@@ -9,7 +9,7 @@ from ..models import Address, Client, ClientFP, ClientJP, BookReview, Book
 bp = Blueprint('clients', __name__, url_prefix='/api/clients')
 
 
-@bp.route('/', methods=['POST'])
+@bp.route('/', methods=['POST'], strict_slashes=False)
 def create_client():
     """
     Endpoint for creating a client
@@ -302,7 +302,7 @@ def get_clients():
                     'idClient': client.idClient,
                     'Type': client.Type,
                     'CPF': client_fp.CPF,
-                    'Name': f"{client_fp.FName} {client_fp.MName} {client_fp.MName or ''}".strip(),
+                    'Name': f"{client_fp.FName} {client_fp.MName  or ''} {client_fp.LName}".strip(),
                     'Birthdate': client_fp.Birthdate.isoformat() if client_fp.Birthdate else None,
                     'Phone': client.Phone,
                     'Email': client.Email,
@@ -323,7 +323,7 @@ def get_clients():
                 client_data = {
                     'idClient': client.idClient,
                     'Type': client.Type,
-                    'CNPJ': client_jp.CPF,
+                    'CNPJ': client_jp.CNPJ,
                     'Name': client_jp.Name,
                     'FantasyName': client_jp.FantasyName,
                     'Phone': client.Phone,
@@ -408,7 +408,7 @@ def get_client(client_id):
             client_data = {
                 'idClient': client.idClient,
                 'Type': client.Type,
-                'CNPJ': client_jp.CPF,
+                'CNPJ': client_jp.CNPJ,
                 'Name': client_jp.Name,
                 'FantasyName': client_jp.FantasyName,
                 'Phone': client.Phone,
